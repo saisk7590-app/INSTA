@@ -5,7 +5,14 @@
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true
   },
+  "include": [
+    "App.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
   "exclude": [
-    "vite.config.ts"
+    "vite.config.ts",
+    "src/features/**/*",
+    "src/components/BottomNav.tsx"
   ]
 }
