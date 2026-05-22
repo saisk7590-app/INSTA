@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { UserAvatar } from '../common';
-import { colors, radii, spacing, typography } from '../../theme';
+import { radii, spacing, typography, useThemedStyles } from '../../theme';
 import { Creator } from '../../types/social';
 
 type Props = {
@@ -11,6 +11,8 @@ type Props = {
 };
 
 export function UserListItem({ user, actionLabel = 'Follow', onPress }: Props) {
+  const styles = useThemedStyles(stylesFactory);
+
   return (
     <View style={styles.card}>
       <View style={styles.left}>
@@ -28,7 +30,7 @@ export function UserListItem({ user, actionLabel = 'Follow', onPress }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const stylesFactory = (colors: any) => StyleSheet.create({
   card: {
     flexDirection: 'row',
     justifyContent: 'space-between',

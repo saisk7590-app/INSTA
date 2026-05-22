@@ -1,11 +1,12 @@
-import React, { useRef } from 'react';
-import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useRef, useEffect, useState } from 'react';
+import { FlatList, Image, Pressable, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Bookmark, Heart, MessageCircle, Send } from 'lucide-react-native';
 import { CommentsBottomSheet, CommentsBottomSheetRef } from '../../components/comments';
 import { HeaderBar, ScreenContainer } from '../../components/common';
 import { NearbyCard } from '../../components/explore';
-import { posts } from '../../services/feed';
+import { getPostById } from '../../services/postService';
+import { Post } from '../../types/social';
 import { nearbyTrending } from '../../services/location';
 import { colors, radii, spacing, typography } from '../../theme';
 import { FeedStackParamList } from '../../types/navigation';
@@ -14,7 +15,37 @@ type Props = NativeStackScreenProps<FeedStackParamList, 'PostDetail'>;
 
 export function PostDetailScreen({ route, navigation }: Props) {
   const commentsSheetRef = useRef<CommentsBottomSheetRef>(null);
-  const post = posts.find((item) => item.id === route.params.postId) ?? posts[0];
+  const { postId } = route.params;
+  const [post, setPost] = useState<Post | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadPost = async () => {
+      setLoading(true);
+      const data = await getPostById(postId);
+      setPost(data);
+      setLoading(false);
+    };
+    loadPost();
+  }, [postId]);
+
+  if (loading) {
+    return (
+      <ScreenContainer>
+        <HeaderBar title="Post" leftAction="back" onLeftPress={() => navigation.goBack()} />
+        <ActivityIndicator size="large" color={colors.accent} style={{ marginTop: 40 }} />
+      </ScreenContainer>
+    );
+  }
+
+  if (!post) {
+    return (
+      <ScreenContainer>
+        <HeaderBar title="Post" leftAction="back" onLeftPress={() => navigation.goBack()} />
+        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: 40 }}>Post not found</Text>
+      </ScreenContainer>
+    );
+  }
 
   return (
     <>

@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { Compass, House, MessageCircleMore, UserRound } from 'lucide-react-native';
-import { colors, radii, spacing } from '../../theme';
+import { radii, spacing, useTheme, useThemedStyles } from '../../theme';
 
 const tabMeta = {
   FeedTab: { icon: House, screen: 'HomeFeed' },
@@ -12,6 +12,9 @@ const tabMeta = {
 } as const;
 
 export function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const { colors, themeMode } = useTheme();
+  const styles = useThemedStyles(stylesFactory);
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.container}>
@@ -32,7 +35,7 @@ export function BottomTabBar({ state, descriptors, navigation }: BottomTabBarPro
                 })
               }
             >
-              <Icon color={isFocused ? colors.background : colors.textSecondary} size={20} />
+              <Icon color={isFocused ? (themeMode === 'light' ? '#FFFFFF' : colors.background) : colors.textSecondary} size={20} />
             </TabButton>
           );
         })}
@@ -53,6 +56,7 @@ function TabButton({
   accessibilityLabel?: string;
 }) {
   const scale = useRef(new Animated.Value(isFocused ? 1 : 0.92)).current;
+  const styles = useThemedStyles(stylesFactory);
 
   useEffect(() => {
     Animated.spring(scale, {
@@ -72,7 +76,7 @@ function TabButton({
   );
 }
 
-const styles = StyleSheet.create({
+const stylesFactory = (colors: any, gradients: any, themeMode: string) => StyleSheet.create({
   wrapper: {
     backgroundColor: 'transparent',
     paddingHorizontal: spacing.md,
@@ -80,7 +84,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(15,17,23,0.94)',
+    backgroundColor: themeMode === 'light' ? 'rgba(255,255,255,0.96)' : 'rgba(15,17,23,0.94)',
     borderWidth: 1,
     borderColor: colors.borderStrong,
     borderRadius: radii.xl,

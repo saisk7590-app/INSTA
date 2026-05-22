@@ -3,7 +3,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Bookmark, Heart, MessageCircle, Send } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { UserAvatar } from '../common';
-import { colors, gradients, radii, shadows, spacing, typography } from '../../theme';
+import { radii, shadows, spacing, typography, useTheme, useThemedStyles } from '../../theme';
 import { Post } from '../../types/social';
 
 type PostCardProps = {
@@ -14,6 +14,9 @@ type PostCardProps = {
 };
 
 export function PostCard({ post, onPressUser, onPressPost, onPressComments }: PostCardProps) {
+  const { colors, gradients } = useTheme();
+  const styles = useThemedStyles(stylesFactory);
+
   return (
     <LinearGradient colors={gradients.card} style={styles.card}>
       <View style={styles.header}>
@@ -50,6 +53,7 @@ export function PostCard({ post, onPressUser, onPressPost, onPressComments }: Po
 }
 
 function Action({ icon, value }: { icon: React.ReactNode; value: number }) {
+  const styles = useThemedStyles(stylesFactory);
   return (
     <View style={styles.actionButton}>
       {icon}
@@ -58,7 +62,7 @@ function Action({ icon, value }: { icon: React.ReactNode; value: number }) {
   );
 }
 
-const styles = StyleSheet.create({
+const stylesFactory = (colors: any, gradients: any, themeMode: string) => StyleSheet.create({
   card: {
     padding: spacing.md,
     borderRadius: radii.lg,
@@ -113,7 +117,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: radii.pill,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: themeMode === 'light' ? 'rgba(10,12,18,0.04)' : 'rgba(255,255,255,0.06)',
   },
   actionText: {
     color: colors.text,

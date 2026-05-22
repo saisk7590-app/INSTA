@@ -7,7 +7,7 @@ export function isValidPhone(value: string) {
 }
 
 export function isStrongPassword(value: string) {
-  return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(value);
+  return value.length >= 6;
 }
 
 export function isValidUsername(value: string) {

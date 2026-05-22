@@ -7,7 +7,6 @@ import {
   logout as logoutRequest,
   persistOnboardingDraft,
   persistPermissionState,
-  saveMockUser,
   saveSession,
   signup as signupRequest,
   validateStoredToken,
@@ -15,6 +14,7 @@ import {
   getSession,
   clearSession,
 } from '../../services/auth';
+import { api } from '../../services/api';
 import {
   AuthSession,
   AuthUser,
@@ -44,6 +44,7 @@ type AuthContextValue = {
   finalizeInterests: (interests: string[]) => Promise<void>;
   resetOnboarding: () => Promise<void>;
   logout: () => Promise<void>;
+  updateUser: (fields: Partial<AuthUser>) => Promise<void>;
 };
 
 const defaultDraft: OnboardingDraft = {
@@ -177,19 +178,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error('Missing pending user.');
     }
 
-    const finalizedUser: AuthUser = {
-      ...pendingUser,
+    const response = await api.put(`/users/${pendingUser.id}`, {
       username: onboardingDraft.username,
-      onboardingCompleted: true,
       interests,
+      onboardingCompleted: true,
+    });
+
+    const userFromDb = response.data.data;
+
+    const finalizedUser: AuthUser = {
+      id: userFromDb.id,
+      username: userFromDb.username,
+      email: userFromDb.email,
+      phone: userFromDb.phone || '',
+      onboardingCompleted: true,
+      interests: userFromDb.interests || [],
+      fullName: userFromDb.fullName,
+      bio: userFromDb.bio,
+      avatarUrl: userFromDb.avatarUrl,
+      location: userFromDb.location || 'Banjara Hills',
     };
 
     const session: AuthSession = {
-      token: `mock-token-${finalizedUser.id}`,
+      token: `session_user_${finalizedUser.id}`,
       user: finalizedUser,
     };
 
-    await saveMockUser(finalizedUser, onboardingDraft.password);
     await saveSession(session);
     await clearDraft();
     setOnboardingDraftState(defaultDraft);
@@ -225,6 +239,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAuthEntry('Login');
   };
 
+  const updateUser = async (fields: Partial<AuthUser>) => {
+    if (user) {
+      const nextUser = { ...user, ...fields };
+      setUser(nextUser);
+      const currentSession = await getSession();
+      if (currentSession) {
+        currentSession.user = nextUser;
+        await saveSession(currentSession);
+      }
+    }
+  };
+
   const value = useMemo<AuthContextValue>(
     () => ({
       isBootstrapping,
@@ -246,6 +272,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       finalizeInterests,
       resetOnboarding,
       logout,
+      updateUser,
     }),
     [isBootstrapping, isAuthenticated, onboardingCompleted, authEntry, user, token, onboardingDraft, permissions, pendingUser]
   );

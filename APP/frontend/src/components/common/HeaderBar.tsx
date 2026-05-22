@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Bell, ChevronLeft, Plus, Settings2 } from 'lucide-react-native';
-import { colors, spacing, typography } from '../../theme';
+import { spacing, typography, useTheme, useThemedStyles } from '../../theme';
 
 type HeaderBarProps = {
   title: string;
@@ -18,6 +18,9 @@ export function HeaderBar({
   onLeftPress,
   onRightPress,
 }: HeaderBarProps) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(stylesFactory);
+
   const renderIcon = (action?: 'back' | 'create' | 'notifications' | 'settings') => {
     switch (action) {
       case 'back':
@@ -46,7 +49,7 @@ export function HeaderBar({
   );
 }
 
-const styles = StyleSheet.create({
+const stylesFactory = (colors: any, gradients: any, themeMode: string) => StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -59,7 +62,7 @@ const styles = StyleSheet.create({
     borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: themeMode === 'light' ? 'rgba(10,12,18,0.03)' : 'rgba(255,255,255,0.05)',
     borderWidth: 1,
     borderColor: colors.border,
   },

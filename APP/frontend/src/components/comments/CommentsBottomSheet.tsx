@@ -11,10 +11,11 @@ import BottomSheet, {
   BottomSheetFlatList,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
-import { StyleSheet, Text, View } from 'react-native';
-import { colors, spacing, typography } from '../../theme';
-import { getCommentsForThread, posts } from '../../services/feed';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { spacing, typography, useTheme, useThemedStyles } from '../../theme';
 import { Comment } from '../../types/social';
+import { fetchPostComments, addPostComment } from '../../services/postService';
+import { useAuth } from '../../hooks/useAuth';
 import { CommentInput } from './CommentInput';
 import { CommentCard } from './CommentCard';
 import { ReplyCard } from './ReplyCard';
@@ -32,6 +33,9 @@ type SheetState = {
 };
 
 export const CommentsBottomSheet = forwardRef<CommentsBottomSheetRef>(function CommentsBottomSheet(_, ref) {
+  const { user } = useAuth();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(stylesFactory);
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['40%', '75%', '95%'], []);
   const [state, setState] = useState<SheetState>({
@@ -40,24 +44,45 @@ export const CommentsBottomSheet = forwardRef<CommentsBottomSheetRef>(function C
     comments: [],
   });
   const [index, setIndex] = useState(-1);
+  const [loading, setLoading] = useState(false);
+
+  const handleAddComment = async (text: string) => {
+    if (!user?.id || !state.threadId) return;
+    const newComment = await addPostComment(state.threadId, user.id, text);
+    if (newComment) {
+      setState((prev) => ({
+        ...prev,
+        comments: [...prev.comments, newComment],
+      }));
+    }
+  };
 
   useImperativeHandle(ref, () => ({
     present: (threadId: string, title?: string) => {
-      const post = posts.find((item) => item.id === threadId);
       setState({
         threadId,
-        title: title ?? post?.userName ?? 'Comments',
-        comments: getCommentsForThread(threadId),
+        title: title ?? 'Comments',
+        comments: [],
       });
+      setLoading(true);
       setIndex(1);
       requestAnimationFrame(() => {
         bottomSheetRef.current?.snapToIndex(1);
       });
+
+      fetchPostComments(threadId)
+        .then((data) => {
+          setState((prev) => ({
+            ...prev,
+            comments: data,
+          }));
+        })
+        .finally(() => setLoading(false));
     },
     dismiss: () => {
       bottomSheetRef.current?.close();
     },
-  }), []);
+  }), [user?.id]);
 
   const renderBackdrop = useCallback(
     (props: any) => (
@@ -88,9 +113,13 @@ export const CommentsBottomSheet = forwardRef<CommentsBottomSheetRef>(function C
     >
       <BottomSheetView style={styles.header}>
         <Text style={styles.title}>{state.title}</Text>
-        <Text style={styles.subtitle}>{state.comments.length} replies in this local thread</Text>
+        <Text style={styles.subtitle}>{state.comments.length} comments</Text>
       </BottomSheetView>
-      {state.comments.length === 0 ? (
+      {loading ? (
+        <BottomSheetView style={styles.emptyWrap}>
+          <ActivityIndicator size="large" color={colors.accent} style={{ marginTop: spacing.xl }} />
+        </BottomSheetView>
+      ) : state.comments.length === 0 ? (
         <BottomSheetView style={styles.emptyWrap}>
           <EmptyCommentsState />
         </BottomSheetView>
@@ -109,14 +138,14 @@ export const CommentsBottomSheet = forwardRef<CommentsBottomSheetRef>(function C
           )}
         />
       )}
-      <CommentInput />
+      <CommentInput onSubmit={handleAddComment} />
     </BottomSheet>
   );
 });
 
-const styles = StyleSheet.create({
+const stylesFactory = (colors: any, gradients: any, themeMode: string) => StyleSheet.create({
   sheetBackground: {
-    backgroundColor: 'rgba(10,12,18,0.98)',
+    backgroundColor: themeMode === 'light' ? 'rgba(255,255,255,0.98)' : 'rgba(10,12,18,0.98)',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     borderWidth: 1,

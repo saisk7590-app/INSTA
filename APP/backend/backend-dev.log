@@ -1,0 +1,65 @@
+
+> backend@1.0.0 dev
+> ts-node-dev --respawn --transpile-only src/server.ts
+
+[INFO] 10:20:22 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 6.0.3)
+◇ injected env (7) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+Server running on port 5000
+PostgreSQL connected successfully
+
+Users: 5
+Posts: 25
+Follows: 10
+Messages: 20
+Notifications: 35
+[API LOG] GET /health hit
+[API LOG] GET /api/auth/demo-users hit
+[API LOG] GET /api/posts/feed?userId=1 hit
+[API LOG] POST /api/auth/login hit
+[API LOG] GET /api/users/e92eaaa2-1855-4992-ab5c-c898236631e7/posts hit
+[API LOG] GET /api/users/:id/posts hit
+[API LOG] GET /api/users/e92eaaa2-1855-4992-ab5c-c898236631e7/following?viewerId=e92eaaa2-1855-4992-ab5c-c898236631e7 hit
+[API LOG] GET /api/users/:id/following hit
+[API LOG] GET /api/users/e92eaaa2-1855-4992-ab5c-c898236631e7/followers?viewerId=e92eaaa2-1855-4992-ab5c-c898236631e7 hit
+[API LOG] GET /api/users/:id/followers hit
+[API LOG] GET /api/posts/a4a2a964-9937-4432-8fa5-b8d0b25afbe0/comments hit
+[API LOG] GET /api/posts/:id/comments hit
+[API LOG] POST /api/posts/a4a2a964-9937-4432-8fa5-b8d0b25afbe0/comments hit
+[API LOG] POST /api/posts/:id/comments hit
+[API LOG] POST /api/auth/signup hit
+[API LOG] POST /api/auth/signup hit
+[API LOG] GET / hit
+[API LOG] GET /favicon.ico hit
+[API LOG] GET /api/auth/demo-users hit
+[API LOG] POST /api/auth/login hit
+[API LOG] GET /api/posts/feed?userId=e92eaaa2-1855-4992-ab5c-c898236631e7 hit
+[API LOG] GET /api/users/e92eaaa2-1855-4992-ab5c-c898236631e7/posts hit
+[API LOG] GET /api/users/:id/posts hit
+[API LOG] GET /api/users/e92eaaa2-1855-4992-ab5c-c898236631e7/stats hit
+[API LOG] GET /api/users/e92eaaa2-1855-4992-ab5c-c898236631e7/followers hit
+[API LOG] GET /api/users/:id/followers hit
+[API LOG] GET /api/users/e92eaaa2-1855-4992-ab5c-c898236631e7/posts hit
+[API LOG] GET /api/users/:id/posts hit
+[API LOG] GET /api/users/e92eaaa2-1855-4992-ab5c-c898236631e7/stats hit
+[API LOG] GET /api/users/e92eaaa2-1855-4992-ab5c-c898236631e7/following hit
+[API LOG] GET /api/users/:id/following hit
+[API LOG] GET /api/users/e92eaaa2-1855-4992-ab5c-c898236631e7/posts hit
+[API LOG] GET /api/users/:id/posts hit
+[API LOG] GET /api/users/e92eaaa2-1855-4992-ab5c-c898236631e7/stats hit
+[API LOG] GET /api/users/e92eaaa2-1855-4992-ab5c-c898236631e7/posts hit
+[API LOG] GET /api/users/:id/posts hit
+[API LOG] GET /api/users/e92eaaa2-1855-4992-ab5c-c898236631e7/stats hit
+[API LOG] GET /api/posts/feed?userId=e92eaaa2-1855-4992-ab5c-c898236631e7 hit
+[API LOG] GET /api/users/u3 hit
+[API LOG] GET /api/users/u3/posts hit
+[API LOG] GET /api/users/:id/posts hit
+[API LOG] GET /api/messages/chats?userId=e92eaaa2-1855-4992-ab5c-c898236631e7 hit
+[API LOG] GET /api/messages/conversations/90c36392-36e6-4d14-92ed-387934275109?userId=e92eaaa2-1855-4992-ab5c-c898236631e7 hit
+[API LOG] GET /api/messages/chats?userId=e92eaaa2-1855-4992-ab5c-c898236631e7 hit
+[API LOG] GET /api/messages/chats?userId=e92eaaa2-1855-4992-ab5c-c898236631e7 hit
+[API LOG] GET /api/posts/3f96827f-6d75-41ca-8ace-c22e534e7ec7/comments hit
+[API LOG] GET /api/posts/:id/comments hit
+[API LOG] GET /api/users/503b3b9b-3eb4-49b0-915f-784adf634539 hit
+[API LOG] GET /api/users/503b3b9b-3eb4-49b0-915f-784adf634539/posts hit
+[API LOG] GET /api/users/:id/posts hit

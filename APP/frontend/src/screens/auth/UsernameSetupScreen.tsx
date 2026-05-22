@@ -4,7 +4,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { HeaderBar, ScreenContainer } from '../../components/common';
 import { useAuth } from '../../hooks/useAuth';
-import { colors, radii, spacing, typography } from '../../theme';
+import { radii, spacing, typography, useTheme, useThemedStyles } from '../../theme';
 import { isValidUsername } from '../../utils/authValidation';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'UsernameSetup'>;
@@ -13,6 +13,8 @@ const taken = ['sai_kiran', 'aroundhq', 'nisha', 'kabirwalks'];
 
 export function UsernameSetupScreen({ navigation }: Props) {
   const { finalizeUsername, onboardingDraft } = useAuth();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(stylesFactory);
   const [username, setUsername] = useState(onboardingDraft.username);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -70,7 +72,7 @@ export function UsernameSetupScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const stylesFactory = (colors: any) => StyleSheet.create({
   body: {
     color: colors.textSecondary,
     marginBottom: spacing.xl,

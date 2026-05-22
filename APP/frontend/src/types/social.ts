@@ -7,6 +7,7 @@ export type Story = {
 
 export type Post = {
   id: string;
+  userId?: string;
   userName: string;
   handle: string;
   avatar: string;
@@ -83,7 +84,7 @@ export type Creator = {
   avatar: string;
   distance: string;
   vibe: string;
-  badge?: 'Creator' | 'Business';
+  badge?: 'Creator' | 'Business' | 'Mutual' | 'Follower' | 'Following';
   mutuals?: string;
 };
 

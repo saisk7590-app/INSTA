@@ -1,24 +1,54 @@
-import React, { useRef } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useRef, useEffect, useState } from 'react';
+import { FlatList, Pressable, StyleSheet, Text, View, RefreshControl, ActivityIndicator } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ArrowRight } from 'lucide-react-native';
 import { CommentsBottomSheet, CommentsBottomSheetRef } from '../../components/comments';
 import { AnalyticsMiniCard, HeaderBar, ScreenContainer } from '../../components/common';
 import { NearbyCard } from '../../components/explore';
 import { PostCard, StoryBubble } from '../../components/feed';
-import { feedAnalytics, posts, stories } from '../../services/feed';
+import { feedAnalytics, stories } from '../../services/feed';
+import { getFeedPosts } from '../../services/postService';
+import { Post } from '../../types/social';
 import { nearbyTrending } from '../../services/location';
-import { colors, radii, spacing, typography } from '../../theme';
+import { radii, spacing, typography, useTheme, useThemedStyles } from '../../theme';
 import { FeedStackParamList } from '../../types/navigation';
+import { useAuth } from '../../hooks/useAuth';
 
 type Props = NativeStackScreenProps<FeedStackParamList, 'HomeFeed'>;
 
 export function HomeFeedScreen({ navigation }: Props) {
+  const { user } = useAuth();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(stylesFactory);
+  const [livePosts, setLivePosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const commentsSheetRef = useRef<CommentsBottomSheetRef>(null);
+
+  const loadFeed = async () => {
+    if (!user?.id) return;
+    const data = await getFeedPosts(user.id);
+    setLivePosts(data);
+    setLoading(false);
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    if (user?.id) {
+      loadFeed();
+    }
+  }, [user?.id]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadFeed();
+  };
 
   return (
     <>
-      <ScreenContainer>
+      <ScreenContainer
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
+      >
         <HeaderBar
           title="Around"
           leftAction="create"
@@ -70,20 +100,26 @@ export function HomeFeedScreen({ navigation }: Props) {
         />
 
         <SectionHeader title="Feed" />
-        {posts.map((post) => (
-          <PostCard
-            key={post.id}
-            post={post}
-            onPressUser={() =>
-              navigation.getParent()?.navigate('ExploreTab', {
-                screen: 'PublicProfile',
-                params: { userId: 'u2' },
-              })
-            }
-            onPressPost={() => navigation.navigate('PostDetail', { postId: post.id })}
-            onPressComments={() => commentsSheetRef.current?.present(post.id, post.userName)}
-          />
-        ))}
+        {loading ? (
+          <ActivityIndicator size="large" color={colors.accent} style={{ marginTop: spacing.xl }} />
+        ) : livePosts.length === 0 ? (
+          <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl }}>No posts found.</Text>
+        ) : (
+          livePosts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              onPressUser={() =>
+                navigation.getParent()?.navigate('ExploreTab', {
+                  screen: 'PublicProfile',
+                  params: { userId: post.userId || '' },
+                })
+              }
+              onPressPost={() => navigation.navigate('PostDetail', { postId: post.id })}
+              onPressComments={() => commentsSheetRef.current?.present(post.id, post.userName)}
+            />
+          ))
+        )}
       </ScreenContainer>
       <CommentsBottomSheet ref={commentsSheetRef} />
     </>
@@ -99,6 +135,8 @@ function SectionHeader({
   actionLabel?: string;
   onPress?: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(stylesFactory);
   return (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -112,7 +150,7 @@ function SectionHeader({
   );
 }
 
-const styles = StyleSheet.create({
+const stylesFactory = (colors: any) => StyleSheet.create({
   hero: {
     color: colors.textSecondary,
     marginBottom: spacing.lg,

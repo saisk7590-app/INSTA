@@ -1,7 +1,7 @@
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors } from '../../theme';
+import { useTheme } from '../../theme';
 
 type UserAvatarProps = {
   uri: string;
@@ -14,12 +14,13 @@ export function UserAvatar({
   size = 48,
   ringColors = ['#7C5CFF', '#31D0AA'],
 }: UserAvatarProps) {
+  const { colors } = useTheme();
   return (
     <LinearGradient
       colors={ringColors as [string, string]}
       style={[styles.ring, { width: size + 6, height: size + 6, borderRadius: (size + 6) / 2 }]}
     >
-      <View style={[styles.inner, { borderRadius: size / 2 }]}>
+      <View style={[styles.inner, { borderRadius: size / 2, backgroundColor: colors.background }]}>
         <Image source={{ uri }} style={{ width: size, height: size, borderRadius: size / 2 }} />
       </View>
     </LinearGradient>
@@ -33,6 +34,5 @@ const styles = StyleSheet.create({
   },
   inner: {
     padding: 2,
-    backgroundColor: colors.background,
   },
 });

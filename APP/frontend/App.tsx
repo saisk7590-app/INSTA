@@ -7,20 +7,29 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import AppNavigator from './src/navigation/AppNavigator';
 import { AuthProvider } from './src/store/auth';
-import { navigationTheme } from './src/theme';
+import { ThemeProvider, useTheme } from './src/theme';
+
+function AppContent() {
+  const { navigationTheme, themeMode } = useTheme();
+  return (
+    <NavigationContainer theme={navigationTheme}>
+      <StatusBar style={themeMode === 'light' ? 'dark' : 'light'} />
+      <AppNavigator />
+    </NavigationContainer>
+  );
+}
 
 export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <AuthProvider>
-          <BottomSheetModalProvider>
-            <NavigationContainer theme={navigationTheme}>
-              <StatusBar style="light" />
-              <AppNavigator />
-            </NavigationContainer>
-          </BottomSheetModalProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <BottomSheetModalProvider>
+              <AppContent />
+            </BottomSheetModalProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

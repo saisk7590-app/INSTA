@@ -1,16 +1,49 @@
-import React, { useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Image, Pressable, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useIsFocused } from '@react-navigation/native';
 import { HeaderBar, ScreenContainer } from '../../components/common';
 import { ProfileStat } from '../../components/profile';
-import { myStats, profilePosts, savedCollections } from '../../services/profile';
-import { colors, radii, spacing, typography } from '../../theme';
+import { savedCollections } from '../../services/profile';
+import { fetchUserPosts } from '../../services/api';
+import { getUserStats } from '../../services/userService';
+import { Post } from '../../types/social';
+import { useAuth } from '../../hooks/useAuth';
+import { radii, spacing, typography, useTheme, useThemedStyles } from '../../theme';
 import { ProfileStackParamList } from '../../types/navigation';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'MyProfile'>;
 
 export function MyProfileScreen({ navigation }: Props) {
+  const { user } = useAuth();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(stylesFactory);
+  const isFocused = useIsFocused();
   const [activeTab, setActiveTab] = useState<(typeof savedCollections)[number]>('Saved');
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [stats, setStats] = useState({ posts: 0, followers: 0, following: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProfileData = async () => {
+      if (user?.id && isFocused) {
+        setLoading(true);
+        try {
+          const [postsData, statsData] = await Promise.all([
+            fetchUserPosts(user.id),
+            getUserStats(user.id)
+          ]);
+          setUserPosts(postsData);
+          setStats(statsData);
+        } catch (error) {
+          console.error('Error loading profile data:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    loadProfileData();
+  }, [user?.id, isFocused]);
 
   return (
     <ScreenContainer>
@@ -22,27 +55,27 @@ export function MyProfileScreen({ navigation }: Props) {
 
       <View style={styles.headerCard}>
         <Image
-          source={{ uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300' }}
+          source={{ uri: user?.avatarUrl || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300' }}
           style={styles.avatar}
         />
-        <Text style={styles.name}>Sai Kiran</Text>
-        <Text style={styles.handle}>@saikiran.now • Banjara Hills</Text>
-        <Text style={styles.bio}>Building a live map of the city through moments, meetups, and hidden spots.</Text>
+        <Text style={styles.name}>{user?.fullName || 'Sai Kiran'}</Text>
+        <Text style={styles.handle}>@{user?.username || 'saikiran.now'} • {user?.location || 'Banjara Hills'}</Text>
+        <Text style={styles.bio}>{user?.bio || 'Building a live map of the city through moments, meetups, and hidden spots.'}</Text>
 
         <View style={styles.statsRow}>
           <Pressable onPress={() => navigation.navigate('SavedPosts')}>
-            <ProfileStat stat={myStats[0]} />
+            <ProfileStat stat={{ label: 'Posts', value: stats.posts.toString() }} />
           </Pressable>
           <Pressable onPress={() => navigation.navigate('Followers')}>
-            <ProfileStat stat={myStats[1]} />
+            <ProfileStat stat={{ label: 'Followers', value: stats.followers.toString() }} />
           </Pressable>
           <Pressable onPress={() => navigation.navigate('Following')}>
-            <ProfileStat stat={myStats[2]} />
+            <ProfileStat stat={{ label: 'Following', value: stats.following.toString() }} />
           </Pressable>
         </View>
 
         <View style={styles.buttonRow}>
-          <Pressable style={styles.editButton}>
+          <Pressable style={styles.editButton} onPress={() => navigation.navigate('EditProfile')}>
             <Text style={styles.editButtonText}>Edit Profile</Text>
           </Pressable>
           <Pressable style={styles.secondaryButton} onPress={() => navigation.navigate('SavedPosts')}>
@@ -68,15 +101,26 @@ export function MyProfileScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.grid}>
-        {profilePosts.map((post) => (
-          <Image key={`${activeTab}-${post.id}`} source={{ uri: post.image }} style={styles.gridItem} />
-        ))}
+        {loading ? (
+          <ActivityIndicator size="large" color={colors.accent} style={{ flex: 1, marginVertical: spacing.lg }} />
+        ) : userPosts.length === 0 ? (
+          <Text style={{ color: colors.textSecondary, textAlign: 'center', flex: 1, marginVertical: spacing.lg }}>No posts yet.</Text>
+        ) : (
+          userPosts.map((post) => (
+            <Pressable
+              key={`${activeTab}-${post.id}`}
+              onPress={() => navigation.getParent()?.navigate('FeedTab', { screen: 'PostDetail', params: { postId: post.id } })}
+            >
+              <Image source={{ uri: post.media }} style={styles.gridItem} />
+            </Pressable>
+          ))
+        )}
       </View>
     </ScreenContainer>
   );
 }
 
-const styles = StyleSheet.create({
+const stylesFactory = (colors: any) => StyleSheet.create({
   headerCard: {
     alignItems: 'center',
     padding: spacing.lg,

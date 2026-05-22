@@ -1,14 +1,24 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { SendHorizontal, SmilePlus } from 'lucide-react-native';
-import { colors, radii, spacing, typography } from '../../theme';
+import { radii, spacing, typography, useTheme, useThemedStyles } from '../../theme';
 
 type Props = {
   placeholder?: string;
+  onSubmit?: (text: string) => void;
 };
 
-export function CommentInput({ placeholder = 'Add a comment...' }: Props) {
+export function CommentInput({ placeholder = 'Add a comment...', onSubmit }: Props) {
   const [value, setValue] = useState('');
+  const { colors } = useTheme();
+  const styles = useThemedStyles(stylesFactory);
+
+  const handleSend = () => {
+    if (value.trim() && onSubmit) {
+      onSubmit(value.trim());
+      setValue('');
+    }
+  };
 
   return (
     <View style={styles.wrap}>
@@ -22,21 +32,25 @@ export function CommentInput({ placeholder = 'Add a comment...' }: Props) {
         placeholderTextColor={colors.textMuted}
         style={styles.input}
       />
-      <Pressable style={[styles.sendButton, !value.trim() && styles.sendButtonDisabled]} disabled={!value.trim()}>
+      <Pressable 
+        onPress={handleSend}
+        style={[styles.sendButton, !value.trim() && styles.sendButtonDisabled]} 
+        disabled={!value.trim()}
+      >
         <SendHorizontal size={16} color={colors.background} />
       </Pressable>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const stylesFactory = (colors: any, gradients: any, themeMode: string) => StyleSheet.create({
   wrap: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.sm,
-    backgroundColor: 'rgba(15,17,23,0.98)',
+    backgroundColor: themeMode === 'light' ? 'rgba(255,255,255,0.98)' : 'rgba(15,17,23,0.98)',
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },

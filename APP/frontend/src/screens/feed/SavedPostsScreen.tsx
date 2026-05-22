@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Grid2X2, Rows3 } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
 import { HeaderBar, ScreenContainer } from '../../components/common';
 import { SavedCollectionCard } from '../../components/feed';
 import { profilePosts } from '../../services/profile';
@@ -9,10 +10,15 @@ import { colors, radii, spacing, typography } from '../../theme';
 
 export function SavedPostsScreen() {
   const [mode, setMode] = useState<'grid' | 'list'>('grid');
+  const navigation = useNavigation();
 
   return (
     <ScreenContainer>
-      <HeaderBar title="Saved Posts" />
+      <HeaderBar 
+        title="Saved Posts" 
+        leftAction="back" 
+        onLeftPress={() => navigation.goBack()} 
+      />
 
       <Text style={styles.sectionTitle}>Collections</Text>
       <FlatList

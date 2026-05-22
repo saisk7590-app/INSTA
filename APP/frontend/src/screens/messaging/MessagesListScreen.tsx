@@ -1,27 +1,56 @@
-import React, { useMemo, useState } from 'react';
-import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { FlatList, Image, Pressable, StyleSheet, Text, View, ActivityIndicator, RefreshControl } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useIsFocused } from '@react-navigation/native';
 import { ScreenContainer, SearchBar } from '../../components/common';
-import { conversations } from '../../services/messaging';
+import { getChats } from '../../services/messageService';
+import { Conversation } from '../../types/social';
 import { colors, radii, spacing, typography } from '../../theme';
 import { MessagesStackParamList } from '../../types/navigation';
+import { useAuth } from '../../hooks/useAuth';
 
 type Props = NativeStackScreenProps<MessagesStackParamList, 'MessagesList'>;
 
 export function MessagesListScreen({ navigation }: Props) {
+  const { user } = useAuth();
+  const isFocused = useIsFocused();
+  const [chats, setChats] = useState<Conversation[]>([]);
   const [query, setQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadChats = async () => {
+    if (!user?.id) return;
+    const data = await getChats(user.id);
+    setChats(data);
+    setLoading(false);
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    if (isFocused && user?.id) {
+      loadChats();
+    }
+  }, [isFocused, user?.id]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadChats();
+  };
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    if (!normalized) return conversations;
+    if (!normalized) return chats;
 
-    return conversations.filter((item) =>
+    return chats.filter((item) =>
       `${item.name} ${item.lastMessage}`.toLowerCase().includes(normalized)
     );
-  }, [query]);
+  }, [query, chats]);
 
   return (
-    <ScreenContainer>
+    <ScreenContainer
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
+    >
       <Text style={styles.title}>Messages</Text>
       <Text style={styles.subtitle}>Recent chats and nearby connections.</Text>
       <SearchBar
@@ -30,36 +59,44 @@ export function MessagesListScreen({ navigation }: Props) {
         onChangeText={setQuery}
       />
 
-      <FlatList
-        data={filtered}
-        keyExtractor={(item) => item.id}
-        scrollEnabled={false}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <Pressable
-            style={styles.card}
-            onPress={() => navigation.navigate('ChatConversation', { conversationId: item.id })}
-          >
-            <View>
-              <Image source={{ uri: item.avatar }} style={styles.avatar} />
-              {item.online ? <View style={styles.onlineDot} /> : null}
-            </View>
-            <View style={styles.content}>
-              <View style={styles.row}>
-                <Text style={styles.name}>{item.name}</Text>
-                <Text style={styles.time}>{item.time}</Text>
+      {loading ? (
+        <ActivityIndicator size="large" color={colors.accent} style={{ marginTop: 40 }} />
+      ) : filtered.length === 0 ? (
+        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: 40 }}>
+          No conversations found.
+        </Text>
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item.id}
+          scrollEnabled={false}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => (
+            <Pressable
+              style={styles.card}
+              onPress={() => navigation.navigate('ChatConversation', { conversationId: item.id })}
+            >
+              <View>
+                <Image source={{ uri: item.avatar }} style={styles.avatar} />
+                {item.online ? <View style={styles.onlineDot} /> : null}
               </View>
-              <Text style={styles.preview}>{item.lastMessage}</Text>
-              <Text style={styles.distance}>{item.distance}</Text>
-            </View>
-            {item.unreadCount ? (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{item.unreadCount}</Text>
+              <View style={styles.content}>
+                <View style={styles.row}>
+                  <Text style={styles.name}>{item.name}</Text>
+                  <Text style={styles.time}>{item.time}</Text>
+                </View>
+                <Text style={styles.preview}>{item.lastMessage}</Text>
+                <Text style={styles.distance}>{item.distance}</Text>
               </View>
-            ) : null}
-          </Pressable>
-        )}
-      />
+              {item.unreadCount ? (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{item.unreadCount}</Text>
+                </View>
+              ) : null}
+            </Pressable>
+          )}
+        />
+      )}
     </ScreenContainer>
   );
 }

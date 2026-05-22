@@ -4,7 +4,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { HeaderBar, ScreenContainer } from '../../components/common';
 import { useAuth } from '../../hooks/useAuth';
-import { colors, radii, spacing, typography } from '../../theme';
+import { radii, spacing, typography, useTheme, useThemedStyles } from '../../theme';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'InterestSelection'>;
 
@@ -23,6 +23,8 @@ const interestOptions = [
 
 export function InterestSelectionScreen({ navigation }: Props) {
   const { finalizeInterests, onboardingDraft } = useAuth();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(stylesFactory);
   const [selected, setSelected] = useState<string[]>(onboardingDraft.interests);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -70,7 +72,7 @@ export function InterestSelectionScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const stylesFactory = (colors: any) => StyleSheet.create({
   body: {
     color: colors.textSecondary,
     marginBottom: spacing.xl,

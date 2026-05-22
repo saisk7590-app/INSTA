@@ -5,6 +5,10 @@ export type AuthUser = {
   phone: string;
   onboardingCompleted: boolean;
   interests: string[];
+  fullName?: string;
+  bio?: string;
+  avatarUrl?: string;
+  location?: string;
 };
 
 export type AuthSession = {

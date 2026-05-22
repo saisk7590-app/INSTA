@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Heart, Reply, SmilePlus } from 'lucide-react-native';
 import { UserAvatar } from '../common';
-import { colors, radii, spacing, typography } from '../../theme';
+import { radii, spacing, typography, useTheme, useThemedStyles } from '../../theme';
 import { Comment } from '../../types/social';
 
 type Props = {
@@ -10,6 +10,9 @@ type Props = {
 };
 
 export function CommentCard({ comment }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(stylesFactory);
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.row}>
@@ -43,7 +46,7 @@ export function CommentCard({ comment }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const stylesFactory = (colors: any, gradients: any, themeMode: string) => StyleSheet.create({
   wrapper: {
     marginBottom: spacing.md,
   },
@@ -55,7 +58,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: themeMode === 'light' ? 'rgba(10,12,18,0.03)' : 'rgba(255,255,255,0.04)',
     borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.border,

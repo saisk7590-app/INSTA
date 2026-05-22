@@ -6,6 +6,7 @@ import {
   FollowingScreen,
   MyProfileScreen,
   PublicUserProfileScreen,
+  EditProfileScreen,
 } from '../screens/profile';
 import SettingsStackNavigator from './SettingsStackNavigator';
 import { ProfileStackParamList } from '../types/navigation';
@@ -26,6 +27,7 @@ export default function ProfileStackNavigator() {
       <Stack.Screen name="Followers" component={FollowersScreen} />
       <Stack.Screen name="Following" component={FollowingScreen} />
       <Stack.Screen name="SavedPosts" component={SavedPostsScreen} />
+      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
     </Stack.Navigator>
   );
 }

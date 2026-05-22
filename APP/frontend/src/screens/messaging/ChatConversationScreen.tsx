@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   FlatList,
   Image,
@@ -7,21 +7,87 @@ import {
   Text,
   TextInput,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Paperclip, Smile, Mic } from 'lucide-react-native';
+import { Paperclip, Smile, Send } from 'lucide-react-native';
 import { HeaderBar, ScreenContainer } from '../../components/common';
 import { MessageBubble } from '../../components/chat';
-import { chatMessages, conversations } from '../../services/messaging';
+import { getChats, getMessages, sendMessage } from '../../services/messageService';
+import { Conversation, ChatMessage } from '../../types/social';
 import { colors, radii, spacing, typography } from '../../theme';
 import { MessagesStackParamList } from '../../types/navigation';
+import { useAuth } from '../../hooks/useAuth';
 
 type Props = NativeStackScreenProps<MessagesStackParamList, 'ChatConversation'>;
 
 export function ChatConversationScreen({ route, navigation }: Props) {
-  const [message, setMessage] = useState('');
-  const conversation = conversations.find((item) => item.id === route.params.conversationId) ?? conversations[0];
-  const messages = chatMessages[conversation.id] ?? [];
+  const { user } = useAuth();
+  const { conversationId } = route.params;
+
+  const [chats, setChats] = useState<Conversation[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [messageText, setMessageText] = useState('');
+  
+  const flatListRef = useRef<FlatList>(null);
+
+  const loadData = async () => {
+    if (!user?.id) return;
+    const [chatsData, messagesData] = await Promise.all([
+      getChats(user.id),
+      getMessages(conversationId, user.id)
+    ]);
+    setChats(chatsData);
+    setMessages(messagesData);
+    setLoading(false);
+    
+    // Scroll to bottom after a tiny delay
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [conversationId, user?.id]);
+
+  const handleSend = async () => {
+    if (!messageText.trim() || !user?.id || sending) return;
+    setSending(true);
+    const sentMsg = await sendMessage(conversationId, user.id, messageText.trim());
+    if (sentMsg) {
+      setMessages((prev) => [...prev, sentMsg]);
+      setMessageText('');
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 50);
+    }
+    setSending(false);
+  };
+
+  const conversation = chats.find((item) => item.id === conversationId);
+
+  if (loading) {
+    return (
+      <ScreenContainer>
+        <HeaderBar title="Chat" leftAction="back" onLeftPress={() => navigation.goBack()} />
+        <ActivityIndicator size="large" color={colors.accent} style={{ marginTop: 40 }} />
+      </ScreenContainer>
+    );
+  }
+
+  if (!conversation) {
+    return (
+      <ScreenContainer>
+        <HeaderBar title="Chat" leftAction="back" onLeftPress={() => navigation.goBack()} />
+        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: 40 }}>
+          Conversation not found.
+        </Text>
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer withScroll={false}>
@@ -35,39 +101,46 @@ export function ChatConversationScreen({ route, navigation }: Props) {
         <View style={styles.statusRow}>
           <Image source={{ uri: conversation.avatar }} style={styles.avatar} />
           <Text style={styles.statusText}>
-            {conversation.online ? 'Active now' : 'Last seen 20m ago'} • {conversation.distance}
+            {conversation.online ? 'Active now' : 'Active recently'} • {conversation.distance}
           </Text>
         </View>
 
         <FlatList
+          ref={flatListRef}
           data={messages}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <MessageBubble message={item} />}
           style={styles.list}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
         />
-
-        <View style={styles.typing}>
-          <Text style={styles.typingText}>{conversation.name} is typing...</Text>
-        </View>
 
         <View style={styles.inputBar}>
           <Pressable style={styles.iconButton}>
             <Smile size={18} color={colors.textSecondary} />
           </Pressable>
           <TextInput
-            value={message}
-            onChangeText={setMessage}
+            value={messageText}
+            onChangeText={setMessageText}
             placeholder="Message..."
             placeholderTextColor={colors.textMuted}
             style={styles.input}
+            onSubmitEditing={handleSend}
           />
           <Pressable style={styles.iconButton}>
             <Paperclip size={18} color={colors.textSecondary} />
           </Pressable>
-          <Pressable style={styles.sendButton}>
-            <Mic size={18} color={colors.background} />
+          <Pressable
+            style={[styles.sendButton, !messageText.trim() && { opacity: 0.5 }]}
+            onPress={handleSend}
+            disabled={sending || !messageText.trim()}
+          >
+            {sending ? (
+              <ActivityIndicator size="small" color={colors.background} />
+            ) : (
+              <Send size={18} color={colors.background} />
+            )}
           </Pressable>
         </View>
       </View>

@@ -5,12 +5,14 @@ import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { HeaderBar, ScreenContainer } from '../../components/common';
 import { sendOtp } from '../../services/auth';
 import { useAuth } from '../../hooks/useAuth';
-import { colors, radii, spacing, typography } from '../../theme';
+import { radii, spacing, typography, useTheme, useThemedStyles } from '../../theme';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'OTPVerification'>;
 
 export function OTPVerificationScreen({ navigation }: Props) {
   const { verifyOtp, onboardingDraft } = useAuth();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(stylesFactory);
   const [code, setCode] = useState('');
   const [timer, setTimer] = useState(30);
   const [loading, setLoading] = useState(false);
@@ -68,7 +70,7 @@ export function OTPVerificationScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const stylesFactory = (colors: any) => StyleSheet.create({
   body: {
     color: colors.textSecondary,
     marginBottom: spacing.xl,

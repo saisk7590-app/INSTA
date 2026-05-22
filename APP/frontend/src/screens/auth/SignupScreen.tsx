@@ -4,13 +4,15 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { HeaderBar, ScreenContainer } from '../../components/common';
 import { useAuth } from '../../hooks/useAuth';
-import { colors, radii, spacing, typography } from '../../theme';
+import { radii, spacing, typography, useTheme, useThemedStyles } from '../../theme';
 import { isStrongPassword, isValidEmail, isValidPhone } from '../../utils/authValidation';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
 
 export function SignupScreen({ navigation }: Props) {
   const { signup, onboardingDraft } = useAuth();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(stylesFactory);
   const [fullName, setFullName] = useState(onboardingDraft.fullName);
   const [email, setEmail] = useState(onboardingDraft.email);
   const [phone, setPhone] = useState(onboardingDraft.phone);
@@ -64,6 +66,8 @@ function Field(props: {
   placeholder: string;
   secureTextEntry?: boolean;
 }) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(stylesFactory);
   return (
     <View style={styles.fieldWrap}>
       <Text style={styles.label}>{props.label}</Text>
@@ -80,7 +84,7 @@ function Field(props: {
   );
 }
 
-const styles = StyleSheet.create({
+const stylesFactory = (colors: any) => StyleSheet.create({
   fieldWrap: {
     marginBottom: spacing.md,
   },

@@ -1,81 +1,52 @@
 import { AuthSession, AuthUser, LoginPayload, SignupPayload } from '../../types/auth';
-
-const delay = (ms = 900) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const mockUsers: Array<AuthUser & { password: string }> = [
-  {
-    id: '1',
-    username: 'sai_kiran',
-    email: 'demo@test.com',
-    phone: '+919876543210',
-    onboardingCompleted: true,
-    interests: ['Coffee', 'Live Music', 'Food Walks'],
-    password: 'Password123!',
-  },
-];
+import { api } from '../api';
+import { login as loginApi, logout as logoutApi } from '../authService';
 
 export async function login(payload: LoginPayload): Promise<AuthSession> {
-  await delay();
-
-  const user = mockUsers.find(
-    (entry) =>
-      entry.email.toLowerCase() === payload.email.trim().toLowerCase() &&
-      entry.password === payload.password
-  );
-
-  if (!user) {
-    throw new Error('Incorrect email or password.');
+  try {
+    return await loginApi(payload);
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.message || error.message || 'Incorrect email or server error.';
+    throw new Error(errorMsg);
   }
-
-  const { password: _password, ...safeUser } = user;
-  return {
-    token: `mock-token-${safeUser.id}`,
-    user: safeUser,
-  };
 }
 
-export async function signup(payload: SignupPayload) {
-  await delay(1100);
-
-  const existing = mockUsers.find(
-    (entry) =>
-      entry.email.toLowerCase() === payload.email.trim().toLowerCase() ||
-      entry.phone === payload.phone
-  );
-
-  if (existing) {
-    throw new Error('An account already exists with that email or phone.');
+export async function signup(payload: SignupPayload): Promise<AuthUser> {
+  try {
+    const username = payload.email.split('@')[0].replace(/[^a-zA-Z0-9_.]/g, '_').toLowerCase();
+    const response = await api.post('/auth/signup', {
+      email: payload.email,
+      phone: payload.phone,
+      password: payload.password,
+      fullName: payload.fullName,
+      username,
+      interests: [],
+    });
+    
+    const { user } = response.data.data;
+    
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      phone: user.phone || '',
+      onboardingCompleted: user.onboardingCompleted || false,
+      interests: [],
+      fullName: user.fullName,
+      bio: user.bio,
+      avatarUrl: user.avatarUrl,
+      location: user.location || undefined,
+    };
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.message || error.message || 'An account already exists or server error.';
+    throw new Error(errorMsg);
   }
-
-  const draftUser: AuthUser = {
-    id: `${mockUsers.length + 1}`,
-    username: '',
-    email: payload.email.trim().toLowerCase(),
-    phone: payload.phone.trim(),
-    onboardingCompleted: false,
-    interests: [],
-  };
-
-  return draftUser;
 }
 
 export async function logout() {
-  await delay(350);
-  return true;
+  return await logoutApi();
 }
 
 export async function validateStoredToken(token: string) {
-  await delay(500);
-  return token.startsWith('mock-token-');
-}
-
-export async function saveMockUser(user: AuthUser, password: string) {
-  await delay(300);
-  const existingIndex = mockUsers.findIndex((entry) => entry.id === user.id);
-
-  if (existingIndex >= 0) {
-    mockUsers[existingIndex] = { ...mockUsers[existingIndex], ...user, password };
-  } else {
-    mockUsers.push({ ...user, password });
-  }
+  return token.startsWith('session_user_');
 }

@@ -1,17 +1,33 @@
-import React, { useState } from 'react';
-import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { FlatList, Image, Pressable, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Search } from 'lucide-react-native';
 import { ScreenContainer } from '../../components/common';
 import { creators, hashtags, nearbyBusinesses } from '../../services/location';
-import { posts } from '../../services/feed';
+import { fetchLiveFeed } from '../../services/api';
+import { Post } from '../../types/social';
+import { useAuth } from '../../hooks/useAuth';
 import { colors, radii, spacing, typography } from '../../theme';
 import { ExploreStackParamList } from '../../types/navigation';
 
 type Props = NativeStackScreenProps<ExploreStackParamList, 'Explore'>;
 
 export function ExploreScreen({ navigation }: Props) {
+  const { user } = useAuth();
   const [query] = useState('');
+  const [gridPosts, setGridPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadGrid = async () => {
+      if (user?.id) {
+        const data = await fetchLiveFeed(user.id);
+        setGridPosts(data);
+      }
+      setLoading(false);
+    };
+    loadGrid();
+  }, [user?.id]);
 
   return (
     <ScreenContainer>
@@ -73,11 +89,17 @@ export function ExploreScreen({ navigation }: Props) {
       />
 
       <SectionTitle label="Discover grid" />
-      <View style={styles.grid}>
-        {posts.map((post) => (
-          <Image key={post.id} source={{ uri: post.media }} style={styles.gridItem} />
-        ))}
-      </View>
+      {loading ? (
+        <ActivityIndicator size="large" color={colors.accent} style={{ marginVertical: spacing.lg }} />
+      ) : gridPosts.length === 0 ? (
+        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginVertical: spacing.lg }}>No posts to discover.</Text>
+      ) : (
+        <View style={styles.grid}>
+          {gridPosts.map((post) => (
+            <Image key={post.id} source={{ uri: post.media }} style={styles.gridItem} />
+          ))}
+        </View>
+      )}
     </ScreenContainer>
   );
 }

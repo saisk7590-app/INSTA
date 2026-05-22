@@ -39,6 +39,7 @@ export type ProfileStackParamList = {
   Followers: undefined;
   Following: undefined;
   SavedPosts: undefined;
+  EditProfile: undefined;
 };
 
 export type MainTabParamList = {

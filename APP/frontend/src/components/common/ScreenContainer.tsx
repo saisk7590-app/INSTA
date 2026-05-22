@@ -2,7 +2,7 @@ import React from 'react';
 import { Animated, ScrollView, ScrollViewProps, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { gradients, spacing } from '../../theme';
+import { spacing, useTheme } from '../../theme';
 import { useEntranceAnimation } from '../../hooks/useEntranceAnimation';
 
 type ScreenContainerProps = ScrollViewProps & {
@@ -17,6 +17,7 @@ export function ScreenContainer({
   ...rest
 }: ScreenContainerProps) {
   const animation = useEntranceAnimation();
+  const { gradients } = useTheme();
 
   const content = (
     <Animated.View style={[styles.content, animation, contentContainerStyle]}>
