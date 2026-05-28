@@ -1,5 +1,16 @@
 import { db } from "../config/db";
 
+type CreatePostInput = {
+    userId: string;
+    mediaUrl: string;
+    caption?: string;
+    locationName?: string;
+    latitude?: number;
+    longitude?: number;
+    placeName?: string;
+    geoVisibilityRadius?: number;
+};
+
 export class PostService {
     static async getFeed(userId: string, limit: number = 25, offset: number = 0) {
         const query = `
@@ -35,13 +46,52 @@ export class PostService {
         return result.rows[0];
     }
 
-    static async createPost(userId: string, mediaUrl: string, caption: string, locationName: string) {
+    static async createPost(input: CreatePostInput) {
+        const {
+            userId,
+            mediaUrl,
+            caption,
+            locationName,
+            latitude,
+            longitude,
+            placeName,
+            geoVisibilityRadius,
+        } = input;
+
         const query = `
-            INSERT INTO posts (user_id, media_url, caption, location_name)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO posts (
+                user_id,
+                media_url,
+                caption,
+                location_name,
+                latitude,
+                longitude,
+                place_name,
+                geo_visibility_radius
+            )
+            SELECT
+                $1,
+                $2,
+                $3,
+                $4,
+                COALESCE($5, u.current_latitude),
+                COALESCE($6, u.current_longitude),
+                COALESCE($7, $4),
+                COALESCE($8, 5000)
+            FROM users u
+            WHERE u.id = $1
             RETURNING *;
         `;
-        const result = await db.query(query, [userId, mediaUrl, caption, locationName]);
+        const result = await db.query(query, [
+            userId,
+            mediaUrl,
+            caption,
+            locationName,
+            latitude,
+            longitude,
+            placeName,
+            geoVisibilityRadius,
+        ]);
         return result.rows[0];
     }
 

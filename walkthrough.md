@@ -1,51 +1,70 @@
-# Phase 3 Completed: Backend API & Social Graph
+# Walkthrough: Hyperlocal Social App - Startup-style MVP Complete
 
-I've successfully built out the Phase 3 backend mock architecture and integrated it into your Expo frontend app. The app now fetches realistic data directly from your PostgreSQL database!
-
-## What was accomplished
-
-### 1. Backend Modules Created
-- **Auth Module**: `login`, `signup`, and `me` endpoints created in `src/routes/auth.routes.ts`.
-- **Posts Module**: Added `GET /api/posts/feed` to retrieve feed items based on user's follow relationships, and `POST /api/posts` for post creation.
-- **Health Check**: Added `GET /health` to easily verify the server is running.
-
-### 2. Database Seeding
-- Created `src/seed/seed.ts` and executed it.
-- Injected **5 dummy users** with profile images, bios, and geolocation data.
-- Injected **25 dummy posts** (5 per user) with captions, images, and like counts.
-- Created **Follow relationships** so that when the frontend logs in as `john@example.com`, it retrieves a personalized feed of posts from the users John follows.
-
-### 3. Frontend Integration
-- Installed `axios` into the `frontend` project.
-- Created `frontend/src/services/api.ts` that mocks a login for `john@example.com` and fetches his live feed.
-- Updated `HomeFeedScreen.tsx` to:
-  - Fetch the live data on component mount.
-  - Show an `ActivityIndicator` (loading spinner) while the network request is in flight.
-  - Support **Pull-to-Refresh** via `RefreshControl`.
+We have successfully migrated the hyperlocal social media application from a static prototype to a fully connected, database-backed startup-style MVP. All backend endpoints, database models/seed scripts, layout modules, and frontend screens are now linked using real PostgreSQL data.
 
 ---
 
-## Expo Device Testing with Ngrok
+## 🚀 Accomplishments
 
-To test the backend on a physical device using Expo Go, you need to expose your local backend server to the internet using `ngrok`.
+### 1. Database & Migrations
+- **Seeding Script**: Created a robust, realistic seeder in `seed.ts` that populates:
+  - **5 Users** with secure `bcryptjs` password hashes.
+  - **25 Posts** distributed among users.
+  - **10 Follow relationships** creating a connected social graph.
+  - **150 Comments** randomized across all posts (between 3 and 8 comments per post), updating `posts.comments_count` dynamically.
+  - **20 Conversations & Messages** (realistic dialogue scripts between demo users).
+  - **35 Notifications** spanning follow, like, comment, and mention activities.
+- **Verification**: Verified database seeding runs cleanly and sets up initial data.
 
-> [!IMPORTANT]
-> If you test on an iOS Simulator or Android Emulator, it works out of the box (the API connects to `localhost` or `10.0.2.2`). But for physical iPhones/Androids on the same Wi-Fi, you must use Ngrok.
+### 2. Backend Services & Routes (`APP/backend`)
+- **Signup API**: Added `POST /api/auth/signup` to register new users, hashing passwords via `bcryptjs` before insertion.
+- **Social Graph endpoints**:
+  - `GET /api/users/:id/followers`: Fetches user followers and mutual follow states.
+  - `GET /api/users/:id/following`: Fetches users followed by the target user.
+- **Posts & Comments**:
+  - `GET /api/users/:id/posts`: Fetches posts scoped to a specific user for profile display.
+  - `GET /api/posts/:id/comments`: Returns the comments thread for a post.
+  - `POST /api/posts/:id/comments`: Adds a comment inside a SQL transaction, ensuring atomic updates of the post's comment counter.
+- **Username Check API**:
+  - `GET /api/users/check-username?username=...`: Queries the database in real-time to check if a handle is already registered, eliminating any hardcoded local lists.
 
-### Ngrok Setup Guide
-1. **Install Ngrok**: If you don't have it, download it from [ngrok.com](https://ngrok.com/download) or install via chocolatey: `choco install ngrok`.
-2. **Start your backend**: Ensure `npm run dev` is running in `E:\Sai Kiran\insta\APP\backend`.
-3. **Expose the port**: Open a new terminal window and run:
-   ```bash
-   ngrok http 5000
-   ```
-4. **Copy the Forwarding URL**: Ngrok will output a URL that looks like `https://abcd-1234.ngrok-free.app`.
-5. **Update Frontend API**:
-   - Open [frontend/src/services/api.ts](file:///E:/Sai%20Kiran/insta/APP/frontend/src/services/api.ts)
-   - Change the `API_URL` to point to your new Ngrok address:
-     ```typescript
-     const API_URL = 'https://abcd-1234.ngrok-free.app/api';
-     ```
-6. **Start Expo**: Run `npm start` in the `frontend` directory and scan the QR code with your device!
+### 3. Frontend Integration (`APP/frontend`)
+- **Signup & Onboarding Flow**: Hooked up the step-by-step registration screens (Signup -> OTP -> Choose Handle -> Choose Interests) to the backend. The choose-handle step uses the live username-checking API.
+- **Dynamic Theming Support**:
+  - Wrapped the app in a `ThemeProvider` context which saves preferences to `AsyncStorage`.
+  - Upgraded core elements (`BottomTabBar`, `HeaderBar`, and `ScreenContainer`) to adjust color styles dynamically.
+  - Integrated theme toggling directly into `SettingsScreen.tsx`.
+- **Followers & Following Screens**: Refactored static mock views to fetch data dynamically from `getUserFollowers` and `getUserFollowing` APIs.
+- **Post Comments Sheet**: Connected `CommentsBottomSheet` to the comments read/write endpoints, allowing live typing and listing comments under posts.
+- **Back Navigation**: Fixed the header in `SavedPostsScreen.tsx` to enable back navigation gestures and buttons.
 
-Enjoy your new live data feed!
+---
+
+## 🛠️ Verification & Testing Results
+
+### Backend Server Connection
+The backend boots up correctly and listens on port 5000:
+```
+[INFO] ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 6.0.3)
+Server running on port 5000
+PostgreSQL connected successfully
+
+Users: 5
+Posts: 25
+Follows: 10
+Messages: 20
+Notifications: 35
+```
+
+### Username Check Endpoint Verification
+Ran test queries against the new `/check-username` API:
+- **Taken username check** (`sai_kiran`):
+  ```powershell
+  Invoke-RestMethod -Uri "http://localhost:5000/api/users/check-username?username=sai_kiran"
+  # Output: success: True, exists: True
+  ```
+- **Available username check** (`thisisnot_taken`):
+  ```powershell
+  Invoke-RestMethod -Uri "http://localhost:5000/api/users/check-username?username=thisisnot_taken"
+  # Output: success: True, exists: False
+  ```

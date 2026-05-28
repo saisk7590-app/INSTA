@@ -1,0 +1,13 @@
+◇ injected env (7) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+Server running on port 5000
+PostgreSQL connected successfully
+
+Users: 5
+Posts: 28
+Follows: 10
+Messages: 20
+Notifications: 35
+[API LOG] GET /api/feed/nearby?latitude=17.4354&longitude=78.4486&radius=5&limit=1&offset=0 hit
+[API LOG] GET /api/feed/nearby?latitude=17.4354&longitude=78.4486&radius=5&limit=1&offset=1 hit
+[API LOG] GET /api/feed/nearby?latitude=17.7000&longitude=78.9000&radius=5&limit=10&offset=0 hit

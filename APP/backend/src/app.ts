@@ -6,6 +6,8 @@ import postRoutes from "./routes/post.routes";
 import userRoutes from "./routes/user.routes";
 import messageRoutes from "./routes/message.routes";
 import notificationRoutes from "./routes/notification.routes";
+import geoRoutes from "./modules/geo/geo.routes";
+import feedRoutes from "./modules/feed/feed.routes";
 
 const app = express();
 
@@ -38,5 +40,7 @@ app.use("/api/posts", postRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/geo", geoRoutes);
+app.use("/api/feed", feedRoutes);
 
 export default app;

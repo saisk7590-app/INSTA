@@ -30,13 +30,31 @@ export const getPost = async (req: Request, res: Response): Promise<void> => {
 
 export const createPost = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { userId, mediaUrl, caption, locationName } = req.body; // Mock auth
+        const {
+            userId,
+            mediaUrl,
+            caption,
+            locationName,
+            latitude,
+            longitude,
+            placeName,
+            geoVisibilityRadius,
+        } = req.body; // Mock auth
         if (!userId || !mediaUrl) {
             res.status(400).json({ success: false, message: "userId and mediaUrl are required" });
             return;
         }
 
-        const newPost = await PostService.createPost(userId, mediaUrl, caption, locationName);
+        const newPost = await PostService.createPost({
+            userId,
+            mediaUrl,
+            caption,
+            locationName,
+            latitude,
+            longitude,
+            placeName,
+            geoVisibilityRadius,
+        });
         res.status(201).json({ success: true, data: newPost });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });

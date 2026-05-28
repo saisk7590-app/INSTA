@@ -1,0 +1,14 @@
+◇ injected env (7) from .env // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+Server running on port 5000
+PostgreSQL connected successfully
+
+Users: 5
+Posts: 25
+Follows: 10
+Messages: 20
+Notifications: 35
+[API LOG] POST /api/geo/update-location hit
+[GEO] POST /api/geo/update-location hit
+[API LOG] GET /api/geo/me?userId=b1a3f45a-a898-49c0-952e-37ac00384a3d hit
+[GEO] GET /api/geo/me hit

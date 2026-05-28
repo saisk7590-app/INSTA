@@ -42,6 +42,9 @@ CREATE TABLE users (
     bio TEXT,
     badge user_badge_type DEFAULT 'User',
     status user_status_type DEFAULT 'active',
+    current_latitude DOUBLE PRECISION,
+    current_longitude DOUBLE PRECISION,
+    last_location_updated TIMESTAMP WITH TIME ZONE,
     location GEOGRAPHY(Point, 4326), -- Upgraded to PostGIS geography for accurate radius queries
     onboarding_completed BOOLEAN DEFAULT FALSE,
     location_granted BOOLEAN DEFAULT FALSE,
@@ -116,6 +119,10 @@ CREATE TABLE posts (
     media_url TEXT NOT NULL,
     caption TEXT,
     location_name VARCHAR(255),
+    latitude DOUBLE PRECISION,
+    longitude DOUBLE PRECISION,
+    place_name VARCHAR(255),
+    geo_visibility_radius INTEGER DEFAULT 5000,
     location GEOGRAPHY(Point, 4326),
     likes_count INT DEFAULT 0 CHECK (likes_count >= 0),
     comments_count INT DEFAULT 0 CHECK (comments_count >= 0),
@@ -274,11 +281,16 @@ CREATE TABLE notifications (
 -- Users & Auth (Case-insensitive unique login handling)
 CREATE UNIQUE INDEX idx_users_username_lower ON users(LOWER(username));
 CREATE INDEX idx_users_status ON users(status) WHERE deleted_at IS NULL;
+CREATE INDEX idx_users_current_lat_lng ON users(current_latitude, current_longitude)
+    WHERE current_latitude IS NOT NULL AND current_longitude IS NOT NULL;
 
 -- Geo-Location PostGIS Indexes (Crucial for Hyperlocal Feeds)
 CREATE INDEX idx_users_location ON users USING GIST (location);
 CREATE INDEX idx_businesses_location ON businesses USING GIST (location);
 CREATE INDEX idx_posts_location ON posts USING GIST (location);
+CREATE INDEX idx_posts_lat_lng ON posts(latitude, longitude)
+    WHERE latitude IS NOT NULL AND longitude IS NOT NULL;
+CREATE INDEX idx_posts_geo_radius ON posts(geo_visibility_radius, created_at DESC);
 
 -- Feed & Cursor Pagination (Replaces inefficient OFFSET)
 CREATE INDEX idx_posts_feed_pagination ON posts(created_at DESC, id);

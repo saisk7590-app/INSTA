@@ -6,10 +6,11 @@ import { HeaderBar, ScreenContainer } from '../../components/common';
 import { useAuth } from '../../hooks/useAuth';
 import { radii, spacing, typography, useTheme, useThemedStyles } from '../../theme';
 import { isValidUsername } from '../../utils/authValidation';
+import { checkUsername } from '../../services/userService';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'UsernameSetup'>;
 
-const taken = ['sai_kiran', 'aroundhq', 'nisha', 'kabirwalks'];
+
 
 export function UsernameSetupScreen({ navigation }: Props) {
   const { finalizeUsername, onboardingDraft } = useAuth();
@@ -28,8 +29,8 @@ export function UsernameSetupScreen({ navigation }: Props) {
     setLoading(true);
     setError('');
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      if (taken.includes(username.toLowerCase())) {
+      const isTaken = await checkUsername(username.trim());
+      if (isTaken) {
         throw new Error('That username is already taken.');
       }
       await finalizeUsername(username.trim().toLowerCase());

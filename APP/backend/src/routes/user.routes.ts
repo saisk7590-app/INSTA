@@ -38,6 +38,25 @@ const relationSelect = `
         (SELECT COUNT(*)::int FROM follows f2 WHERE f2.follower_id = u.id) AS following_count
 `;
 
+// GET /api/users/check-username
+router.get("/check-username", async (req: Request, res: Response): Promise<void> => {
+    try {
+        console.log("[API LOG] GET /api/users/check-username hit");
+        const username = req.query.username as string;
+        if (!username) {
+            res.status(400).json({ success: false, message: "username query parameter is required" });
+            return;
+        }
+        const result = await db.query(
+            "SELECT id FROM users WHERE LOWER(username) = LOWER($1) LIMIT 1",
+            [username.trim()]
+        );
+        res.json({ success: true, exists: result.rows.length > 0 });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // GET /api/users/:id/stats
 router.get("/:id/stats", async (req: Request, res: Response): Promise<void> => {
     try {

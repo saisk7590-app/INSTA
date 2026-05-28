@@ -6,12 +6,13 @@ import { MapPinned } from 'lucide-react-native';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { HeaderBar, ScreenContainer } from '../../components/common';
 import { useAuth } from '../../hooks/useAuth';
+import { updateLocation } from '../../services/geoService';
 import { colors, radii, spacing, typography } from '../../theme';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'LocationPermission'>;
 
 export function LocationPermissionScreen({ navigation }: Props) {
-  const { setPermissions } = useAuth();
+  const { onboardingDraft, pendingUser, setPermissions } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const handleContinue = async (ask: boolean) => {
@@ -21,8 +22,22 @@ export function LocationPermissionScreen({ navigation }: Props) {
       if (ask) {
         const permission = await Location.requestForegroundPermissionsAsync();
         granted = permission.status === 'granted';
+
+        if (granted) {
+          try {
+            const position = await Location.getCurrentPositionAsync({
+              accuracy: Location.Accuracy.Balanced,
+            });
+            const userId = pendingUser?.id || onboardingDraft.userId;
+            if (userId) {
+              await updateLocation(userId, position.coords.latitude, position.coords.longitude);
+            }
+          } catch (error) {
+            console.warn('[LocationPermission] Unable to capture current position:', error);
+          }
+        }
       }
-      await setPermissions({ locationGranted: granted || !ask });
+      await setPermissions({ locationGranted: granted });
       navigation.navigate('NotificationPermission');
     } finally {
       setLoading(false);

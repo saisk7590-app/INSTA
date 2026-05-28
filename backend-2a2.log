@@ -1,0 +1,10 @@
+◇ injected env (7) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+Server running on port 5000
+PostgreSQL connected successfully
+
+Users: 5
+Posts: 25
+Follows: 10
+Messages: 20
+Notifications: 35

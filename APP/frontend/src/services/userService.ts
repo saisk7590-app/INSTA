@@ -21,6 +21,13 @@ export async function updateUserProfile(userId: string, data: { fullName?: strin
   return response.data.data;
 }
 
+export async function checkUsername(username: string): Promise<boolean> {
+  const response = await api.get('/users/check-username', {
+    params: { username }
+  });
+  return response.data.exists;
+}
+
 export async function getUserFollowers(userId: string, viewerId?: string): Promise<any[]> {
   try {
     const response = await api.get(`/users/${userId}/followers`, {

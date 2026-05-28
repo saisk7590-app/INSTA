@@ -10,11 +10,3 @@ export const db = new Pool({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
 });
-
-db.connect()
-    .then(() => {
-        // Connected silently, verified on server startup
-    })
-    .catch((err) => {
-        console.error("❌ DB Connection Error:", err);
-    });
